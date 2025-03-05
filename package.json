@@ -1,0 +1,29 @@
+{
+  "name": "monorepo",
+  "private": true,
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18.20.7",
+    "pnpm": ">=9.15.5"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "check": "biome check",
+    "check-fix": "biome check --write",
+    "format": "biome format --write"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@rspack/cli": "^1.2.7",
+    "@rspack/core": "^1.2.7",
+    "cross-env": "^7.0.3",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@biomejs/biome"
+    ]
+  }
+}

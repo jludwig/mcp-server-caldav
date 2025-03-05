@@ -1,0 +1,31 @@
+{
+  "name": "mcp-server-caldav",
+  "description": "A Model Context Protocol (MCP) server enabling secure access to CalDAV APIs",
+  "license": "Apache-2.0",
+  "version": "0.1.0",
+  "type": "module",
+  "author": {
+    "name": "Óscar Carrasco",
+    "email": "oscar@railmap.systems",
+    "url": "https://railmap.systems"
+  },
+  "scripts": {
+    "dev": "cross-env NODE_OPTIONS='--import tsx' NODE_ENV=development rspack serve",
+    "build": "cross-env NODE_OPTIONS='--import tsx' NODE_ENV=production rspack build",
+    "check": "biome check --write",
+    "format": "biome format --write"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "tsdav": "^2.1.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@rspack/cli": "^1.2.7",
+    "@rspack/core": "^1.2.7",
+    "cross-env": "^7.0.3",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  }
+}
