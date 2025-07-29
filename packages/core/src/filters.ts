@@ -389,11 +389,11 @@ export class CalDavFilters {
 
   private static escapeValue(value: string): string {
     return value
-      .replace(/\\/g, '\\\\')
-      .replace(/;/g, '\\;')
-      .replace(/,/g, '\\,')
-      .replace(/\n/g, '\\n')
-      .replace(/\r/g, '\\r')
-      .replace(/\t/g, '\\t');
+      .replace(/\\\\/g, '\\\\\\\\') // Escape backslashes first
+      .replace(/;/g, '\\\\;')
+      .replace(/,/g, '\\\\,')
+      .replace(/\n/g, '\\\\n')
+      .replace(/\r/g, '\\\\r')
+      .replace(/\t/g, '\\\\t');
   }
 }

@@ -173,12 +173,12 @@ export class CalDavRequestHandler {
     const reportXml = buildCalendarQuery(options);
 
     try {
-      // Create a timeout promise
+      // Create a timeout promise that rejects after the specified timeout
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => reject(new Error('Request timeout')), timeout);
       });
 
-      // Execute the REPORT request with timeout
+      // Execute the REPORT request
       const reportPromise = client.calendarQuery({
         url: calendarUrl,
         props: [

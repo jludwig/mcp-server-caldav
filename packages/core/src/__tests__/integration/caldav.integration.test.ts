@@ -94,15 +94,51 @@ describe('CalDAV Integration Tests', { skip: skipIntegrationTests }, () => {
       );
       const sampleEvents = await fs.readFile(sampleEventsPath, 'utf-8');
 
-      // Upload sample events to DAViCal default calendar
-      // This is a simplified approach - in practice you'd use CalDAV PUT requests
+      // Parse individual events from the sample calendar
+      const eventBlocks = sampleEvents
+        .split('BEGIN:VEVENT')
+        .slice(1) // Remove the first empty part
+        .map((block) => `BEGIN:VEVENT${block.split('END:VEVENT')[0]}END:VEVENT`)
+        .filter((block) => block.includes('UID:'));
+
+      console.log(`Found ${eventBlocks.length} sample events to upload`);
+
+      // Upload each event individually using CalDAV PUT requests
       const calendarUrl = `${davicalUrl}/caldav.php/testuser/calendar/`;
 
-      // For now, just log that we have the sample data
-      // Real implementation would PUT each event to the calendar
-      console.log(
-        `Loaded ${sampleEvents.split('BEGIN:VEVENT').length - 1} sample events`,
-      );
+      for (let i = 0; i < eventBlocks.length; i++) {
+        const eventBlock = eventBlocks[i];
+        const eventWrapper = [
+          'BEGIN:VCALENDAR',
+          'VERSION:2.0',
+          'PRODID:-//Test Data//Test Data//EN',
+          eventBlock,
+          'END:VCALENDAR',
+        ].join('\r\n');
+
+        try {
+          // Use fetch to PUT the event to DAViCal
+          const eventUrl = `${calendarUrl}event${i + 1}.ics`;
+          const response = await fetch(eventUrl, {
+            method: 'PUT',
+            headers: {
+              Authorization: `Basic ${Buffer.from('testuser:testpass').toString('base64')}`,
+              'Content-Type': 'text/calendar',
+            },
+            body: eventWrapper,
+          });
+
+          if (!response.ok) {
+            console.warn(`Failed to upload event ${i + 1}: ${response.status}`);
+          } else {
+            console.log(`Successfully uploaded event ${i + 1}`);
+          }
+        } catch (uploadError) {
+          console.warn(`Error uploading event ${i + 1}:`, uploadError);
+        }
+      }
+
+      console.log('Test data setup completed');
     } catch (error) {
       console.warn('Could not load sample test data:', error);
       // Continue without sample data - tests should still work with empty calendar
