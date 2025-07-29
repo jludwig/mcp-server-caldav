@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   davical:
@@ -36,3 +36,4 @@ services:
 
 volumes:
   postgres_data:
+

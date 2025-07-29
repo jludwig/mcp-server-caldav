@@ -108,17 +108,22 @@ describe('CalDAV Integration Tests', { skip: skipIntegrationTests }, () => {
 
       for (let i = 0; i < eventBlocks.length; i++) {
         const eventBlock = eventBlocks[i];
+        
+        // Extract UID from the event block for filename
+        const uidMatch = eventBlock.match(/UID:([^\r\n]+)/);
+        const uid = uidMatch ? uidMatch[1].trim() : `event${i + 1}`;
+        
         const eventWrapper = [
           'BEGIN:VCALENDAR',
           'VERSION:2.0',
           'PRODID:-//Test Data//Test Data//EN',
           eventBlock,
           'END:VCALENDAR',
-        ].join('\r\n');
+        ].join('\r\n') + '\r\n'; // Add trailing CRLF
 
         try {
-          // Use fetch to PUT the event to DAViCal
-          const eventUrl = `${calendarUrl}event${i + 1}.ics`;
+          // Use UID as filename for CalDAV best practice
+          const eventUrl = `${calendarUrl}${uid}.ics`;
           const response = await fetch(eventUrl, {
             method: 'PUT',
             headers: {
@@ -128,13 +133,14 @@ describe('CalDAV Integration Tests', { skip: skipIntegrationTests }, () => {
             body: eventWrapper,
           });
 
-          if (!response.ok) {
-            console.warn(`Failed to upload event ${i + 1}: ${response.status}`);
+          // Accept 201 (Created), 204 (No Content), or any success status
+          if (response.ok && (response.status === 201 || response.status === 204 || response.status < 300)) {
+            console.log(`Successfully uploaded event ${uid} (${response.status})`);
           } else {
-            console.log(`Successfully uploaded event ${i + 1}`);
+            console.warn(`Failed to upload event ${uid}: ${response.status}`);
           }
         } catch (uploadError) {
-          console.warn(`Error uploading event ${i + 1}:`, uploadError);
+          console.warn(`Error uploading event ${uid}:`, uploadError);
         }
       }
 
