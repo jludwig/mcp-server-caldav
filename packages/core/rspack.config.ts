@@ -7,7 +7,7 @@ export default defineConfig({
   },
   target: 'node18',
   resolve: {
-    extensions: ['.ts'],
+    extensions: ['.ts', '.js'],
   },
   module: {
     rules: [

@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  davical:
+    image: cweiske/davical:latest
+    ports:
+      - "8080:80"
+    environment:
+      - DAVICAL_DBA_PASSWORD=test123
+      - DAVICAL_APP_PASSWORD=test123
+      - POSTGRES_PASSWORD=test123
+    volumes:
+      - ./test-data:/usr/share/davical/htdocs/test-data
+    depends_on:
+      - postgres
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  postgres:
+    image: postgres:13
+    environment:
+      - POSTGRES_DB=davical
+      - POSTGRES_USER=davical_dba
+      - POSTGRES_PASSWORD=test123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U davical_dba -d davical"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

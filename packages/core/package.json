@@ -12,6 +12,9 @@
   "scripts": {
     "dev": "cross-env NODE_OPTIONS='--import tsx' NODE_ENV=development rspack serve",
     "build": "cross-env NODE_OPTIONS='--import tsx' NODE_ENV=production rspack build",
+    "test": "cross-env NODE_OPTIONS='--import tsx' node --test src/__tests__/**/*.test.ts",
+    "test:watch": "cross-env NODE_OPTIONS='--import tsx' node --test --watch src/__tests__/**/*.test.ts",
+    "test:integration": "cross-env NODE_OPTIONS='--import tsx' node --test src/__tests__/integration/**/*.test.ts",
     "check": "biome check --write",
     "format": "biome format --write"
   },
