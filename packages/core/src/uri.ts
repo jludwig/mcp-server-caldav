@@ -98,9 +98,9 @@ function tryParseWithTemplate(
     if (parts.length < 2) return null;
     const calendarId = parts.pop();
     const principal = parts.join('/');
-    variables.principal = principal;
+    variables.principal = decodeURIComponent(principal);
     if (calendarId) {
-      variables.calendarId = calendarId;
+      variables.calendarId = decodeURIComponent(calendarId);
     }
   } else if (
     template.name === 'metadata-list-cals' &&
@@ -112,7 +112,7 @@ function tryParseWithTemplate(
     }
     // Extract principal
     const principal = pathPart.slice(0, -16); // Remove '/_meta/calendars'
-    variables.principal = principal;
+    variables.principal = decodeURIComponent(principal);
   } else {
     // Generic handling for variable-only templates
     const pathPattern = templatePath.replace(/{([^}]+)}/g, (match, varName) => {
@@ -130,9 +130,11 @@ function tryParseWithTemplate(
       return null;
     }
 
-    // Extract path variables
+    // Extract path variables with URL decoding
     if (pathMatch.groups) {
-      Object.assign(variables, pathMatch.groups);
+      for (const [key, value] of Object.entries(pathMatch.groups)) {
+        variables[key] = decodeURIComponent(value);
+      }
     }
   }
 

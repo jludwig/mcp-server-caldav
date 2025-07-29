@@ -61,7 +61,8 @@ export class CalDavRequestHandler {
   private async getDiscoveryResult(
     client: CalDavClient,
   ): Promise<DiscoveryResult> {
-    const cacheKey = client.serverUrl;
+    // Key cache on both server URL and username to prevent session leakage
+    const cacheKey = `${client.serverUrl}:${client.credentials.username || 'anonymous'}`;
     const cached = this.discoveryCache.get(cacheKey);
 
     if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {

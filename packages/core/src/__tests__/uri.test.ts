@@ -118,5 +118,29 @@ describe('CalDavUriParser', () => {
       assert.strictEqual(timeRange.start, '2024-01-01');
       assert.strictEqual(timeRange.end, '2024-01-31');
     });
+
+    it('should handle URL encoding/decoding round-trip symmetry', () => {
+      // Test with special characters that need encoding
+      const originalVars = {
+        principal: 'users/john@example.com',
+        calendarId: 'my calendar',
+        comp: 'VEVENT',
+        start: '2024-01-01',
+        end: '2024-01-31',
+      };
+
+      // Build URI (this encodes the variables)
+      const uri = buildCalDavUri('components-range', originalVars);
+
+      // Parse URI back (this should decode the variables)
+      const parsed = parseCalDavUri(uri);
+
+      // Variables should match original after round-trip
+      assert.strictEqual(parsed.variables.principal, originalVars.principal);
+      assert.strictEqual(parsed.variables.calendarId, originalVars.calendarId);
+      assert.strictEqual(parsed.variables.comp, originalVars.comp);
+      assert.strictEqual(parsed.variables.start, originalVars.start);
+      assert.strictEqual(parsed.variables.end, originalVars.end);
+    });
   });
 });

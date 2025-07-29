@@ -1,5 +1,6 @@
 export interface CalendarComponent {
   uid: string;
+  componentType?: string; // VEVENT, VTODO, VJOURNAL
   summary?: string;
   dtstart?: string;
   dtend?: string;
@@ -14,36 +15,32 @@ export interface CalendarComponent {
 export class CalDavFilters {
   static parseICalendarData(icalData: string): CalendarComponent[] {
     const components: CalendarComponent[] = [];
-    const lines = icalData.split(/\r?\n/);
+
+    // First unfold all continuation lines (lines starting with space or tab)
+    const unfoldedData = icalData.replace(/\r?\n[ \t]/g, '');
+    const lines = unfoldedData.split(/\r?\n/);
 
     let currentComponent: Partial<CalendarComponent> | null = null;
     let inComponent = false;
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-
-      // Handle line folding (lines starting with space or tab)
-      if (
-        i > 0 &&
-        (line.startsWith(' ') || line.startsWith('\t')) &&
-        currentComponent
-      ) {
-        const prevLine = lines[i - 1];
-        lines[i - 1] = prevLine + line.substring(1);
-        continue;
-      }
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      if (!trimmedLine) continue;
 
       if (
-        line.startsWith('BEGIN:VEVENT') ||
-        line.startsWith('BEGIN:VTODO') ||
-        line.startsWith('BEGIN:VJOURNAL')
+        trimmedLine.startsWith('BEGIN:VEVENT') ||
+        trimmedLine.startsWith('BEGIN:VTODO') ||
+        trimmedLine.startsWith('BEGIN:VJOURNAL')
       ) {
         currentComponent = {};
+        // Extract and store the component type
+        const componentType = trimmedLine.split(':')[1];
+        currentComponent.componentType = componentType;
         inComponent = true;
       } else if (
-        line.startsWith('END:VEVENT') ||
-        line.startsWith('END:VTODO') ||
-        line.startsWith('END:VJOURNAL')
+        trimmedLine.startsWith('END:VEVENT') ||
+        trimmedLine.startsWith('END:VTODO') ||
+        trimmedLine.startsWith('END:VJOURNAL')
       ) {
         if (currentComponent?.uid) {
           components.push(currentComponent as CalendarComponent);
@@ -51,7 +48,7 @@ export class CalDavFilters {
         currentComponent = null;
         inComponent = false;
       } else if (inComponent && currentComponent) {
-        CalDavFilters.parseProperty(line, currentComponent);
+        CalDavFilters.parseProperty(trimmedLine, currentComponent);
       }
     }
 
@@ -354,13 +351,10 @@ export class CalDavFilters {
     ];
 
     for (const comp of components) {
-      // Determine component type based on properties
+      // Use stored component type, or fall back to heuristic
       const compType =
-        comp.dtstart && comp.dtend
-          ? 'VEVENT'
-          : comp.status
-            ? 'VTODO'
-            : 'VJOURNAL';
+        comp.componentType ||
+        (comp.dtstart ? 'VEVENT' : comp.status ? 'VTODO' : 'VJOURNAL');
 
       icalLines.push(`BEGIN:${compType}`);
 

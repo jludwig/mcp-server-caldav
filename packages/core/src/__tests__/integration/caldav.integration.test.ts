@@ -4,7 +4,6 @@ import { after, before, describe, it } from 'node:test';
 import { promisify } from 'node:util';
 import { createCalDavClient } from '../../caldav';
 import { CalDavRequestHandler } from '../../handler';
-import { CalDavUriParser } from '../../uri';
 
 const execAsync = promisify(exec);
 
@@ -83,6 +82,31 @@ describe('CalDAV Integration Tests', { skip: skipIntegrationTests }, () => {
     // This would typically involve setting up test users and calendars
     // For now, we'll assume DAViCal has default setup
     console.log('Setting up test data...');
+
+    try {
+      // Read sample events from test data
+      const fs = await import('node:fs/promises');
+      const path = await import('node:path');
+
+      const sampleEventsPath = path.resolve(
+        __dirname,
+        '../../../../test-data/sample-events.ics',
+      );
+      const sampleEvents = await fs.readFile(sampleEventsPath, 'utf-8');
+
+      // Upload sample events to DAViCal default calendar
+      // This is a simplified approach - in practice you'd use CalDAV PUT requests
+      const calendarUrl = `${davicalUrl}/caldav.php/testuser/calendar/`;
+
+      // For now, just log that we have the sample data
+      // Real implementation would PUT each event to the calendar
+      console.log(
+        `Loaded ${sampleEvents.split('BEGIN:VEVENT').length - 1} sample events`,
+      );
+    } catch (error) {
+      console.warn('Could not load sample test data:', error);
+      // Continue without sample data - tests should still work with empty calendar
+    }
   }
 
   describe('Discovery', () => {
@@ -204,7 +228,7 @@ describe('CalDAV Integration Tests', { skip: skipIntegrationTests }, () => {
       const response = await handler.handleRequest({
         uri,
         client,
-        timeout: 1, // 1ms timeout to force timeout
+        timeout: 50, // 50ms timeout to force timeout
       });
 
       assert.strictEqual(response.status, 400);
