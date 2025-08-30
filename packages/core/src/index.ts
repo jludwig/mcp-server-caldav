@@ -1,7 +1,4 @@
-import {
-  McpServer,
-  ResourceTemplate,
-} from '@modelcontextprotocol/sdk/server/mcp.js';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 import { type CalDavClientOptions, createCalDavClient } from './caldav';
 import { CalDavRequestHandler } from './handler';
@@ -54,4 +51,17 @@ export const createCalDavMcpServer = async (
 export type { CalDavClientOptions } from './caldav';
 export { CalDavRequestHandler } from './handler';
 export { CALDAV_TEMPLATES } from './templates';
-export { CalDavUriParser } from './uri';
+export {
+  parseCalDavUri,
+  buildCalDavUri,
+  extractCalendarPath,
+  isMetadataRequest,
+} from './uri';
+
+// Compatibility shim for previous CalDavUriParser class-based API
+export const CalDavUriParser = {
+  parse: parseCalDavUri,
+  build: buildCalDavUri,
+  extractCalendarPath,
+  isMetadataRequest,
+} as const;

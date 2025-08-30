@@ -9,13 +9,19 @@ export interface CalendarQueryOptions {
   jmesFilter?: string;
 }
 
-function formatCalDavDateTime(dateTime: string): string {
+function formatCalDavDateTime(
+  dateTime: string,
+  options: { isEnd?: boolean } = {},
+): string {
   // Handle both date and datetime formats
   if (dateTime.includes('T')) {
     // Full datetime - ensure it ends with Z for UTC
     return dateTime.endsWith('Z') ? dateTime : `${dateTime}Z`;
   }
-  // Date only - convert to full day range
+  // Date only - for end dates, use end of day to include the full date
+  if (options.isEnd) {
+    return `${dateTime}T23:59:59Z`;
+  }
   return `${dateTime}T00:00:00Z`;
 }
 
@@ -55,7 +61,7 @@ export function buildCalendarQuery(options: CalendarQueryOptions): string {
           ? ` start="${formatCalDavDateTime(timeRange.start)}"`
           : '';
         const endAttr = timeRange.end
-          ? ` end="${formatCalDavDateTime(timeRange.end)}"`
+          ? ` end="${formatCalDavDateTime(timeRange.end, { isEnd: true })}"`
           : '';
         xmlParts.push(`        <C:time-range${startAttr}${endAttr}/>`);
       }
@@ -96,7 +102,7 @@ export function buildCalendarQuery(options: CalendarQueryOptions): string {
           ? ` start="${formatCalDavDateTime(timeRange.start)}"`
           : '';
         const endAttr = timeRange.end
-          ? ` end="${formatCalDavDateTime(timeRange.end)}"`
+          ? ` end="${formatCalDavDateTime(timeRange.end, { isEnd: true })}"`
           : '';
         xmlParts.push(`      <C:time-range${startAttr}${endAttr}/>`);
       }

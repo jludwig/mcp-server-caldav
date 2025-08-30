@@ -7,8 +7,8 @@ import { CalDavRequestHandler } from '../../handler';
 
 const execAsync = promisify(exec);
 
-// Skip integration tests if DAViCal is not available
-const skipIntegrationTests = process.env.SKIP_INTEGRATION_TESTS === 'true';
+// Skip integration tests by default unless explicitly enabled
+const skipIntegrationTests = process.env.RUN_INTEGRATION_TESTS !== 'true';
 
 describe('CalDAV Integration Tests', { skip: skipIntegrationTests }, () => {
   let davicalUrl: string;
@@ -108,18 +108,19 @@ describe('CalDAV Integration Tests', { skip: skipIntegrationTests }, () => {
 
       for (let i = 0; i < eventBlocks.length; i++) {
         const eventBlock = eventBlocks[i];
-        
+
         // Extract UID from the event block for filename
         const uidMatch = eventBlock.match(/UID:([^\r\n]+)/);
         const uid = uidMatch ? uidMatch[1].trim() : `event${i + 1}`;
-        
-        const eventWrapper = [
-          'BEGIN:VCALENDAR',
-          'VERSION:2.0',
-          'PRODID:-//Test Data//Test Data//EN',
-          eventBlock,
-          'END:VCALENDAR',
-        ].join('\r\n') + '\r\n'; // Add trailing CRLF
+
+        const eventWrapper =
+          [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//Test Data//Test Data//EN',
+            eventBlock,
+            'END:VCALENDAR',
+          ].join('\r\n') + '\r\n'; // Add trailing CRLF
 
         try {
           // Use UID as filename for CalDAV best practice
@@ -133,9 +134,11 @@ describe('CalDAV Integration Tests', { skip: skipIntegrationTests }, () => {
             body: eventWrapper,
           });
 
-          // Accept 201 (Created), 204 (No Content), or any success status
-          if (response.ok && (response.status === 201 || response.status === 204 || response.status < 300)) {
-            console.log(`Successfully uploaded event ${uid} (${response.status})`);
+          // Accept any 2xx success status
+          if (response.ok) {
+            console.log(
+              `Successfully uploaded event ${uid} (${response.status})`,
+            );
           } else {
             console.warn(`Failed to upload event ${uid}: ${response.status}`);
           }

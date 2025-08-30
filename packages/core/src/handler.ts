@@ -147,6 +147,15 @@ export class CalDavRequestHandler {
     // Apply additional client-side filtering if needed
     let components = CalDavFilters.parseICalendarData(calendarData);
 
+    if (filterParams.category) {
+      components = CalDavFilters.filterByCategory(
+        components,
+        filterParams.category,
+      );
+    }
+    if (filterParams.uid) {
+      components = CalDavFilters.filterByUid(components, filterParams.uid);
+    }
     if (filterParams.jmesFilter) {
       components = CalDavFilters.filterByJmesExpression(
         components,
@@ -170,8 +179,6 @@ export class CalDavRequestHandler {
     options: CalendarQueryOptions,
     timeout: number,
   ): Promise<string> {
-    const reportXml = buildCalendarQuery(options);
-
     try {
       // Create a timeout promise that rejects after the specified timeout
       const timeoutPromise = new Promise<never>((_, reject) => {
@@ -214,20 +221,19 @@ export class CalDavRequestHandler {
   }
 
   private buildFiltersFromOptions(options: CalendarQueryOptions): any {
-    const filters: any = {};
+    const filters: any = { type: 'comp-filter', name: 'VCALENDAR' };
 
     if (options.componentType) {
-      filters.type = 'comp-filter';
-      filters.name = 'VCALENDAR';
-      filters.compFilters = [
-        {
-          name: options.componentType,
-          isNotDefined: false,
-        },
-      ];
-    }
-
-    if (options.timeRange?.start || options.timeRange?.end) {
+      const comp: any = { name: options.componentType, isNotDefined: false };
+      if (options.timeRange?.start || options.timeRange?.end) {
+        comp.timeRange = {
+          start: options.timeRange.start,
+          end: options.timeRange.end,
+        };
+      }
+      filters.compFilters = [comp];
+    } else if (options.timeRange?.start || options.timeRange?.end) {
+      // Some servers require a component filter even for time-range-only queries
       filters.timeRange = {
         start: options.timeRange.start,
         end: options.timeRange.end,

@@ -82,11 +82,13 @@ export class CalDavFilters {
       case 'DTEND':
         component.dtend = CalDavFilters.parseDateTime(value, params);
         break;
-      case 'CATEGORIES':
-        component.categories = value
-          .split(',')
-          .map((cat) => CalDavFilters.unescapeValue(cat.trim()));
+      case 'CATEGORIES': {
+        const parts = value.split(/(?<!\\),/);
+        component.categories = parts.map((cat) =>
+          CalDavFilters.unescapeValue(cat.trim()),
+        );
         break;
+      }
       case 'STATUS':
         component.status = value.toUpperCase();
         break;
@@ -131,10 +133,8 @@ export class CalDavFilters {
   private static unescapeValue(value: string): string {
     return value
       .replace(/\\n/g, '\n')
-      .replace(/\\r/g, '\r')
-      .replace(/\\t/g, '\t')
-      .replace(/\\;/g, ';')
       .replace(/\\,/g, ',')
+      .replace(/\\;/g, ';')
       .replace(/\\\\/g, '\\');
   }
 
@@ -162,22 +162,30 @@ export class CalDavFilters {
     return components.filter((comp) => {
       if (!comp.dtstart) return false;
 
-      // Parse iCalendar date format (YYYYMMDDTHHMMSSZ)
-      const parseICalDate = (dateStr: string) => {
-        const cleaned = dateStr.replace(/[^0-9TZ]/g, '');
-        if (cleaned.match(/^\d{8}T\d{6}Z?$/)) {
+      // Parse iCalendar date format with proper YYYYMMDD and TZID handling
+      const parseICalDate = (raw: string) => {
+        const trimmed = raw.replace(/\s*\([^)]+\)\s*$/, ''); // strip " (TZID)" if present
+        if (/^\d{8}T\d{6}Z?$/.test(trimmed)) {
+          const z = trimmed.endsWith('Z') ? trimmed : `${trimmed}Z`;
           return new Date(
-            cleaned.replace(
-              /(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z?/,
-              '$1-$2-$3T$4:$5:$6Z',
-            ),
+            z.replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z/, '$1-$2-$3T$4:$5:$6Z'),
           );
         }
-        return new Date(dateStr);
+        if (/^\d{8}$/.test(trimmed)) {
+          return new Date(
+            trimmed.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3T00:00:00Z'),
+          );
+        }
+        return new Date(trimmed);
       };
 
       const compStart = parseICalDate(comp.dtstart);
-      const compEnd = comp.dtend ? parseICalDate(comp.dtend) : compStart;
+      const isAllDay = /^\d{8}$/.test((comp.dtstart || '').replace(/[^\d]/g, ''));
+      const compEnd = comp.dtend
+        ? parseICalDate(comp.dtend)
+        : isAllDay
+          ? new Date(compStart.getTime() + 24 * 60 * 60 * 1000)
+          : compStart;
 
       if (startDate && compEnd < startDate) return false;
       if (endDate && compStart > endDate) return false;
@@ -389,11 +397,9 @@ export class CalDavFilters {
 
   private static escapeValue(value: string): string {
     return value
-      .replace(/\\\\/g, '\\\\\\\\') // Escape backslashes first
-      .replace(/;/g, '\\\\;')
-      .replace(/,/g, '\\\\,')
-      .replace(/\n/g, '\\\\n')
-      .replace(/\r/g, '\\\\r')
-      .replace(/\t/g, '\\\\t');
+      .replace(/\\/g, '\\\\')
+      .replace(/;/g, '\\;')
+      .replace(/,/g, '\\,')
+      .replace(/\r\n|\n|\r/g, '\\n');
   }
 }
