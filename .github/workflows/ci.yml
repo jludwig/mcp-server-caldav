@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint & check (Biome)
+        run: pnpm check
+
+      - name: Format check
+        run: pnpm format && git diff --exit-code || (echo "Run pnpm format locally" && exit 1)
+
+      - name: Build
+        run: pnpm -C packages/core build
+
+      - name: Unit tests
+        run: pnpm -C packages/core test:unit
+
+      # Integration tests are opt-in (require Docker). Enable via workflow dispatch env if desired.
+      # - name: Integration tests
+      #   run: RUN_INTEGRATION_TESTS=true pnpm -C packages/core test:integration
