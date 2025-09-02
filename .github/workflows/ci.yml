@@ -16,16 +16,23 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 'lts/*'
+          check-latest: true
           cache: 'pnpm'
 
-      - name: Setup pnpm
+      - name: Setup pnpm (latest stable)
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: latest
+          run_install: false
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Versions
+        run: |
+          node -v
+          pnpm -v
 
       - name: Lint & check (Biome)
         run: pnpm check
