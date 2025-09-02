@@ -116,13 +116,19 @@ export class CalDavDiscovery {
     return collections;
   }
 
-  private parseComponentSet(componentSetProp: any): string[] {
+  private parseComponentSet(
+    componentSetProp:
+      | { comp?: { name?: string } | Array<{ name?: string }> }
+      | undefined,
+  ): string[] {
     if (!componentSetProp?.comp) {
       return ['VEVENT', 'VTODO', 'VJOURNAL']; // Default components
     }
 
     if (Array.isArray(componentSetProp.comp)) {
-      return componentSetProp.comp.map((c: any) => c.name).filter(Boolean);
+      return componentSetProp.comp
+        .map((c) => c.name)
+        .filter(Boolean) as string[];
     }
 
     if (componentSetProp.comp.name) {

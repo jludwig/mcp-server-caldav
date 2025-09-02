@@ -12,8 +12,9 @@
   "scripts": {
     "dev": "cross-env NODE_OPTIONS='--import tsx' NODE_ENV=development rspack serve",
     "build": "cross-env NODE_OPTIONS='--import tsx' NODE_ENV=production rspack build",
-    "test": "cross-env NODE_OPTIONS='--import tsx' node --test src/__tests__/**/*.test.ts",
-    "test:watch": "cross-env NODE_OPTIONS='--import tsx' node --test --watch src/__tests__/**/*.test.ts",
+    "test": "cross-env NODE_OPTIONS='--import tsx' node --test",
+    "test:watch": "cross-env NODE_OPTIONS='--import tsx' node --test --watch",
+    "test:unit": "cross-env NODE_OPTIONS='--import tsx' node --test src/__tests__/*.test.ts",
     "test:integration": "cross-env NODE_OPTIONS='--import tsx' node --test src/__tests__/integration/**/*.test.ts",
     "check": "biome check --write",
     "format": "biome format --write"
@@ -27,6 +28,7 @@
     "@rspack/cli": "catalog:",
     "@rspack/core": "catalog:",
     "cross-env": "^7.0.3",
+    "supports-color": "^8.1.1",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.3",
     "typescript": "^5.7.3"

@@ -204,9 +204,11 @@ export class CalDavRequestHandler {
       const result = await Promise.race([reportPromise, timeoutPromise]);
 
       // Extract calendar data from results
-      const calendarData = result
-        .map((item: any) => item.props?.['calendar-data'])
-        .filter(Boolean)
+      const calendarData = (
+        result as Array<{ props?: Record<string, unknown> }>
+      )
+        .map((item) => item.props?.['calendar-data'] as string | undefined)
+        .filter((v): v is string => typeof v === 'string' && v.length > 0)
         .join('\n');
 
       return calendarData || this.createEmptyCalendar();
@@ -220,11 +222,33 @@ export class CalDavRequestHandler {
     }
   }
 
-  private buildFiltersFromOptions(options: CalendarQueryOptions): any {
-    const filters: any = { type: 'comp-filter', name: 'VCALENDAR' };
+  private buildFiltersFromOptions(options: CalendarQueryOptions): {
+    type: 'comp-filter';
+    name: 'VCALENDAR';
+    compFilters?: Array<{
+      name: string;
+      isNotDefined?: boolean;
+      timeRange?: { start?: string; end?: string };
+    }>;
+    timeRange?: { start?: string; end?: string };
+  } {
+    const filters: {
+      type: 'comp-filter';
+      name: 'VCALENDAR';
+      compFilters?: Array<{
+        name: string;
+        isNotDefined?: boolean;
+        timeRange?: { start?: string; end?: string };
+      }>;
+      timeRange?: { start?: string; end?: string };
+    } = { type: 'comp-filter', name: 'VCALENDAR' };
 
     if (options.componentType) {
-      const comp: any = { name: options.componentType, isNotDefined: false };
+      const comp: {
+        name: string;
+        isNotDefined?: boolean;
+        timeRange?: { start?: string; end?: string };
+      } = { name: options.componentType, isNotDefined: false };
       if (options.timeRange?.start || options.timeRange?.end) {
         comp.timeRange = {
           start: options.timeRange.start,

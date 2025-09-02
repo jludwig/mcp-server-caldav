@@ -45,4 +45,4 @@ export const createCalDavClient = async (options: CalDavClientOptions) => {
   return await createDAVClient(options);
 };
 
-export type CalDavClient = ReturnType<Awaited<typeof createCalDavClient>>;
+export type CalDavClient = Awaited<ReturnType<typeof createCalDavClient>>;

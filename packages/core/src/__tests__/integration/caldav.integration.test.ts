@@ -1,8 +1,10 @@
 import assert from 'node:assert';
 import { exec } from 'node:child_process';
+import path from 'node:path';
 import { after, before, describe, it } from 'node:test';
+import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { createCalDavClient } from '../../caldav';
+import { type CalDavClient, createCalDavClient } from '../../caldav';
 import { CalDavRequestHandler } from '../../handler';
 
 const execAsync = promisify(exec);
@@ -12,7 +14,7 @@ const skipIntegrationTests = process.env.RUN_INTEGRATION_TESTS !== 'true';
 
 describe('CalDAV Integration Tests', { skip: skipIntegrationTests }, () => {
   let davicalUrl: string;
-  let client: any;
+  let client: CalDavClient;
   let handler: CalDavRequestHandler;
 
   before(async () => {
@@ -86,8 +88,9 @@ describe('CalDAV Integration Tests', { skip: skipIntegrationTests }, () => {
     try {
       // Read sample events from test data
       const fs = await import('node:fs/promises');
-      const path = await import('node:path');
-
+      // Resolve __dirname in ESM context
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = path.dirname(__filename);
       const sampleEventsPath = path.resolve(
         __dirname,
         '../../../../test-data/sample-events.ics',
@@ -113,14 +116,13 @@ describe('CalDAV Integration Tests', { skip: skipIntegrationTests }, () => {
         const uidMatch = eventBlock.match(/UID:([^\r\n]+)/);
         const uid = uidMatch ? uidMatch[1].trim() : `event${i + 1}`;
 
-        const eventWrapper =
-          [
-            'BEGIN:VCALENDAR',
-            'VERSION:2.0',
-            'PRODID:-//Test Data//Test Data//EN',
-            eventBlock,
-            'END:VCALENDAR',
-          ].join('\r\n') + '\r\n'; // Add trailing CRLF
+        const eventWrapper = `${[
+          'BEGIN:VCALENDAR',
+          'VERSION:2.0',
+          'PRODID:-//Test Data//Test Data//EN',
+          eventBlock,
+          'END:VCALENDAR',
+        ].join('\r\n')}\r\n`; // Add trailing CRLF
 
         try {
           // Use UID as filename for CalDAV best practice
@@ -319,10 +321,10 @@ describe('CalDAV Integration Tests', { skip: skipIntegrationTests }, () => {
       const responses = await Promise.all(promises);
 
       // All requests should succeed
-      responses.forEach((response) => {
+      for (const response of responses) {
         assert.strictEqual(response.status, 200);
         assert.strictEqual(response.mimeType, 'application/json');
-      });
+      }
     });
   });
 });
