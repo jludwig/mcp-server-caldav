@@ -2,6 +2,7 @@ import type { CalDavClient } from './caldav';
 import { CalDavDiscovery, type DiscoveryResult } from './discovery';
 import { CalDavFilters, type CalendarComponent } from './filters';
 import { type CalendarQueryOptions, buildCalendarQuery } from './report';
+import type { ComponentType } from './types';
 import {
   type ParsedCalDavUri,
   getComponentType,
@@ -125,7 +126,7 @@ export class CalDavRequestHandler {
 
     // Build query options
     const queryOptions: CalendarQueryOptions = {
-      componentType: getComponentType(variables),
+      componentType: getComponentType(variables) as ComponentType | undefined,
       timeRange: getTimeRange(variables),
     };
 

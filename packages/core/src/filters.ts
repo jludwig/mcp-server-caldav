@@ -1,6 +1,9 @@
+import { parseICalDate } from './ical';
+import type { ComponentType } from './types';
+
 export interface CalendarComponent {
   uid: string;
-  componentType?: string; // VEVENT, VTODO, VJOURNAL
+  componentType?: ComponentType; // VEVENT, VTODO, VJOURNAL
   summary?: string;
   dtstart?: string;
   dtend?: string;
@@ -148,25 +151,6 @@ export function filterByTimeRange(
 
   return components.filter((comp) => {
     if (!comp.dtstart) return false;
-
-    const parseICalDate = (raw: string) => {
-      const trimmed = raw.replace(/\s*\([^)]+\)\s*$/, '');
-      if (/^\d{8}T\d{6}Z?$/.test(trimmed)) {
-        const z = trimmed.endsWith('Z') ? trimmed : `${trimmed}Z`;
-        return new Date(
-          z.replace(
-            /(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z/,
-            '$1-$2-$3T$4:$5:$6Z',
-          ),
-        );
-      }
-      if (/^\d{8}$/.test(trimmed)) {
-        return new Date(
-          trimmed.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3T00:00:00Z'),
-        );
-      }
-      return new Date(trimmed);
-    };
 
     const compStart = parseICalDate(comp.dtstart);
     const isAllDay = /^\d{8}$/.test((comp.dtstart || '').replace(/[^\d]/g, ''));

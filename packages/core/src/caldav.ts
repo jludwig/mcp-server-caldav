@@ -20,7 +20,7 @@ export type CalDavClientMethod = 'OAuth' | 'Basic';
 interface CalDavClientOptionsBase {
   serverUrl: string;
   credentials: CalDavCredentials;
-  defaultAccountType: 'caldav';
+  defaultAccountType?: 'caldav';
   authMethod: CalDavClientMethod;
 }
 
@@ -39,10 +39,11 @@ export type CalDavClientOptions =
   | CalDavClientOptionsBasic;
 
 export const createCalDavClient = async (options: CalDavClientOptions) => {
-  if (options.authMethod === 'OAuth') {
-    return await createDAVClient({ ...options, authMethod: 'Oauth' });
+  const base = { defaultAccountType: 'caldav' as const, ...options };
+  if (base.authMethod === 'OAuth') {
+    return await createDAVClient({ ...base, authMethod: 'Oauth' });
   }
-  return await createDAVClient(options);
+  return await createDAVClient(base);
 };
 
 export type CalDavClient = Awaited<ReturnType<typeof createCalDavClient>>;

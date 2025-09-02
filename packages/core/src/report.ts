@@ -1,5 +1,8 @@
+import { formatCalDavDateTime } from './ical';
+import type { ComponentType } from './types';
+
 export interface CalendarQueryOptions {
-  componentType?: string;
+  componentType?: ComponentType;
   timeRange?: {
     start?: string;
     end?: string;
@@ -7,15 +10,6 @@ export interface CalendarQueryOptions {
   categoryFilter?: string;
   uid?: string;
   jmesFilter?: string;
-}
-
-function formatCalDavDateTime(dateTime: string): string {
-  // Handle both date and datetime formats
-  if (dateTime.includes('T')) {
-    // Full datetime - ensure it ends with Z for UTC
-    return dateTime.endsWith('Z') ? dateTime : `${dateTime}Z`;
-  }
-  return `${dateTime}T00:00:00Z`;
 }
 
 function escapeXml(text: string): string {

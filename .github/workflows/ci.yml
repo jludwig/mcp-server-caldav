@@ -13,26 +13,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js (LTS 20.x)
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
+          node-version: '20.x'
           check-latest: true
           cache: 'pnpm'
 
-      - name: Setup pnpm (latest stable)
+      - name: Setup pnpm (9.x)
         uses: pnpm/action-setup@v4
         with:
-          version: latest
+          version: 9.15.5
           run_install: false
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Versions
-        run: |
-          node -v
-          pnpm -v
+      - name: Verify Node.js and pnpm versions
+        env:
+          REQUIRED_NODE: '18.20.7'
+          REQUIRED_PNPM: '9.15.5'
+        run: node .github/scripts/check-versions.js
 
       - name: Lint & check (Biome)
         run: pnpm check

@@ -4,6 +4,8 @@ import {
   getTemplate,
   validateTemplateVariables,
 } from './templates';
+import type { ComponentType } from './types';
+import { COMPONENT_TYPES } from './types';
 
 export interface ParsedCalDavUri {
   templateName: string;
@@ -211,8 +213,12 @@ export function isMetadataRequest(templateName: string): boolean {
 
 export function getComponentType(
   variables: Record<string, string>,
-): string | undefined {
-  return variables.comp;
+): ComponentType | undefined {
+  const comp = variables.comp as string | undefined;
+  if (!comp) return undefined;
+  return (COMPONENT_TYPES as readonly string[]).includes(comp)
+    ? (comp as ComponentType)
+    : undefined;
 }
 
 export function getTimeRange(variables: Record<string, string>): {
